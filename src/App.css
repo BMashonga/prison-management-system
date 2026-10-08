@@ -1,38 +1,19 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+.login-shell { align-items: flex-start; background: #fff; display: flex; justify-content: center; min-height: 100vh; padding: clamp(100px, 18vh, 180px) 24px 48px; }
+.login-card { display: grid; gap: 24px; max-width: 516px; padding: 0; width: 100%; }
+.login-heading { display: grid; gap: 20px; justify-items: center; margin-bottom: 26px; text-align: center; }
+.login-heading h1 { color: #0d0d0d; font-size: 17px; font-weight: 700; }
+.login-heading p { color: #252525; font-size: 14px; }
+.login-form { display: grid; gap: 42px; }
+.login-form .MuiTextField-root { background: #03153f; border-radius: 12px; }
+.login-form .MuiOutlinedInput-root { border-radius: 12px; color: #fff; height: 53px; }
+.login-form .MuiOutlinedInput-notchedOutline { border: 0; }
+.login-form .MuiInputLabel-root { color: #fff; font-size: 12px; transform: translate(15px, 17px) scale(1); }
+.login-form .MuiInputLabel-root.Mui-focused, .login-form .MuiInputLabel-root.MuiFormLabel-filled { transform: translate(14px, 7px) scale(.75); }
+.login-form .MuiInputLabel-root.Mui-focused { color: #fff; }
+.password-toggle { color: #fff !important; font-size: 11px !important; font-weight: 400 !important; min-width: 0 !important; padding: 4px !important; text-transform: none !important; }
+.login-button { background: #f2a13a !important; border-radius: 24px !important; box-shadow: 0 3px 2px rgb(1 43 114 / 30%) !important; color: #fff !important; font-size: 15px !important; font-weight: 500 !important; height: 42px; margin-top: -18px !important; text-transform: none !important; }
+.login-button:hover { background: #df912f !important; }
+.forgot-password { margin-top: -8px; text-align: center; }
+.forgot-password button { color: #f2a13a; min-width: 0; padding: 0 3px; text-transform: none; vertical-align: baseline; }
+.summary-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .summary-grid { grid-template-columns: 1fr; } }
