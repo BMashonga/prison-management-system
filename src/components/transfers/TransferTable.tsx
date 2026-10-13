@@ -92,11 +92,19 @@ function TransferTable({
 
   return (
     <Paper sx={{ p: { xs: 2, sm: 3 } }}>
-      <Typography variant="h6" component="h2" gutterBottom>
+      <Typography
+        variant="h6"
+        component="h2"
+        gutterBottom
+        sx={{ color: '#172033', fontWeight: 700 }}
+      >
         Transfer Records
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      <Typography
+        variant="body2"
+        sx={{ mb: 2, color: '#475569' }}
+      >
         Search requests or filter them by their current status.
       </Typography>
 
@@ -133,7 +141,16 @@ function TransferTable({
       <TableContainer>
         <Table size="small" aria-label="Transfer records">
           <TableHead>
-            <TableRow>
+            <TableRow
+              sx={{
+                backgroundColor: '#f1f5f9',
+                '& th': {
+                  color: '#334155',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                },
+              }}
+            >
               <TableCell>Inmate</TableCell>
               <TableCell>Movement</TableCell>
               <TableCell>Security</TableCell>
@@ -145,26 +162,38 @@ function TransferTable({
 
           <TableBody>
             {visibleTransfers.map((transfer) => (
-              <TableRow key={transfer.id} hover>
+              <TableRow
+                key={transfer.id}
+                hover
+                sx={{
+                  '& td': {
+                    color: '#334155',
+                    borderColor: '#e2e8f0',
+                  },
+                }}
+              >
                 <TableCell>
                   <Typography
                     variant="body2"
-                    sx={{ fontWeight: 600 }}
+                    sx={{ fontWeight: 600, color: '#172033' }}
                   >
                     {transfer.inmateName}
                   </Typography>
 
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography
+                    variant="caption"
+                    sx={{ color: '#475569' }}
+                  >
                     {transfer.inmateNumber}
                   </Typography>
                 </TableCell>
 
                 <TableCell>
-                  <Typography variant="body2">
+                  <Typography variant="body2" sx={{ color: '#334155' }}>
                     {transfer.originFacility}
                   </Typography>
 
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{ color: '#475569' }}>
                     → {transfer.destinationFacility}
                   </Typography>
                 </TableCell>
@@ -191,6 +220,7 @@ function TransferTable({
                         color: 'primary.main',
                         cursor: 'pointer',
                         font: 'inherit',
+                        fontWeight: 600,
                         textDecoration: 'underline',
                       }}
                     >
@@ -206,7 +236,7 @@ function TransferTable({
                 <TableCell
                   colSpan={onSelectTransfer ? 6 : 5}
                   align="center"
-                  sx={{ py: 4 }}
+                  sx={{ py: 4, color: '#475569' }}
                 >
                   No transfer records match your search.
                 </TableCell>
@@ -229,7 +259,10 @@ function TransferTable({
         rowsPerPageOptions={[5, 10, 25]}
       />
 
-      <Typography variant="caption" color="text.secondary">
+      <Typography
+        variant="caption"
+        sx={{ color: '#475569' }}
+      >
         Showing {filteredTransfers.length} matching transfer record(s).
       </Typography>
     </Paper>
