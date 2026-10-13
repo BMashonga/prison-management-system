@@ -1,7 +1,9 @@
-import Dashboard from './pages/Dashboard'
+
+import './App.css'
+import TransferManagement from './pages/TransferManagement'
 
 function App() {
-  return <Dashboard />
+  return <TransferManagement />
 }
 
 export default App
