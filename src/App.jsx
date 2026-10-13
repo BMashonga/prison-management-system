@@ -1,9 +1,10 @@
 import './App.css'
+import UserAccess from './UsersAccess/UserAccess'
 
 function App() {
   return (
     <>
-      <h1>Prison Management System</h1>
+      <UserAccess />
     </>
   )
 }
