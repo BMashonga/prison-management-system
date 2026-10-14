@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-const API_URL = 'http://localhost:5000/api/visitors'
+const API_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:5000/api/visitors'
 
 const navigation = [
   { label: 'Overview', icon: 'OV' },
