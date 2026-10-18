@@ -2,12 +2,14 @@ import LoginComponent from "../components/LoginForm";
 
 export default function Login() {
     return (
-        <div>
-            <h1 className="text-xl text-center my-20">Prison System Management</h1>
-            <div>
+        <main className="login-page">
+            <div className="login-layout">
+                <header className="login-brand">
+                    <span className="login-brand-rule" aria-hidden="true" />
+                    <h1>Prison System Management</h1>
+                </header>
                 <LoginComponent />
             </div>
-        </div>
+        </main>
     );
 }
-
