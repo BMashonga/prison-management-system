@@ -1200,3 +1200,121 @@ button:disabled {
     align-items: flex-start;
   }
 }
+/* Keep most text dark */
+body,
+p,
+label,
+input,
+select,
+textarea,
+td,
+th {
+  color: #17243a;
+}
+
+/* Headings should be dark */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #111827;
+}
+
+/* Keep light blue for selected highlights */
+.active,
+.active a,
+.nav-link.active {
+  color: #60a5fa;
+}
+/* Group-style navigation bar */
+.sidebar {
+  background: #f1f2f4;
+  border-right: 1px solid #dfe3e8;
+}
+
+.sidebar a,
+.sidebar button {
+  color: #202936;
+  background: transparent;
+}
+
+.sidebar a.active,
+.sidebar button.active,
+.sidebar .active {
+  background: #06172b;
+  color: #ffffff;
+  border-radius: 4px;
+}
+
+.sidebar a:hover,
+.sidebar button:hover {
+  background: #dfe3e8;
+  color: #111827;
+}
+/* Make cards and panels have square corners */
+.card,
+.panel,
+.stat-card,
+.table-card,
+.form-card,
+.registration-modal {
+  border-radius: 0 !important;
+}
+/* Make buttons have square, right-angled corners */
+button,
+.btn,
+.btn-primary,
+.btn-secondary,
+button.primary,
+button.secondary,
+input[type="submit"] {
+  border-radius: 0 !important;
+}
+/* Make navigation items have square corners */
+.sidebar a,
+.sidebar button,
+.sidebar a.active,
+.sidebar button.active,
+.sidebar .active {
+  border-radius: 0 !important;
+}
+/* Make the page background closer to white */
+body {
+  background: #fcfcfd;
+}
+
+.app-shell,
+.main-content {
+  background: #fcfcfd;
+}
+/* Hide the visitor initials avatar */
+.avatar,
+.visitor-avatar,
+.user-avatar {
+  display: none !important;
+}
+/* Hide square icons in the sidebar navigation */
+.sidebar .nav-icon,
+.sidebar .nav-item-icon,
+.sidebar svg,
+.sidebar img {
+  display: none !important;
+}
+/* Hide the Secure Facility brand box */
+.sidebar .brand,
+.sidebar .logo,
+.sidebar .sidebar-header {
+  display: none !important;
+}
+/* Hide the Secure Facility box at the bottom of the sidebar */
+.sidebar-footer {
+  display: none !important;
+}
+/* Remove the letter icons from the statistics cards */
+.stat-icon,
+.stat-card-icon,
+.stat-icon-wrapper {
+  display: none !important;
+}
