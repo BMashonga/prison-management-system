@@ -1318,3 +1318,24 @@ body {
 .stat-icon-wrapper {
   display: none !important;
 }
+
+/* Full-width layout without the sidebar */
+.app-shell.no-sidebar {
+  display: block;
+  min-height: 100vh;
+}
+
+.no-sidebar .main-content {
+  width: 100%;
+  min-width: 0;
+  margin-left: 0;
+}
+
+.no-sidebar .topbar {
+  width: 100%;
+}
+
+.no-sidebar .page-content {
+  width: 100%;
+  max-width: none;
+}
