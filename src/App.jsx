@@ -1,13 +1,11 @@
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 
 const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:5000/api/visitors'
+  import.meta.env.VITE_API_URL || '/api/visitors'
 
-const INMATES_URL = 'http://localhost:5000/api/inmates'
-
-const VISITOR_STATUSES = ['Pending', 'Approved', 'Rejected']
+const INMATES_URL = API_URL.replace(/\/visitors\/?$/, '/inmates')
 
 const EMPTY_FORM = {
   name: '',
@@ -21,16 +19,6 @@ const EMPTY_FORM = {
   time: '09:00',
 }
 
-function formatDate(date) {
-  if (!date) return '—'
-
-  return new Date(`${date}T12:00:00`).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
 function formatTime(time) {
   if (!time) return '—'
 
@@ -40,29 +28,14 @@ function formatTime(time) {
   return `${hour % 12 || 12}:${minutes} ${hour >= 12 ? 'PM' : 'AM'}`
 }
 
-function formatTimestamp(timestamp) {
-  if (!timestamp) return 'Not recorded'
-
-  return new Date(timestamp).toLocaleString('en-GB', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
-
-function getStatusClass(status = '') {
-  return status.toLowerCase().replaceAll('/', '').replaceAll(' ', '-')
-}
-
 function App() {
   const [visitors, setVisitors] = useState([])
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('All')
-  const [dateFilter, setDateFilter] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState(null)
   const [formBusy, setFormBusy] = useState(false)
+  const [gateVisitorId, setGateVisitorId] = useState('')
 
   const [inmateSearch, setInmateSearch] = useState('')
   const [inmateResults, setInmateResults] = useState([])
@@ -96,15 +69,17 @@ function App() {
   }
 
   useEffect(() => {
-    loadVisitors()
+    const timer = window.setTimeout(() => {
+      void loadVisitors()
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [])
 
   useEffect(() => {
     const query = inmateSearch.trim()
 
     if (query.length < 2 || selectedInmate) {
-      setInmateResults([])
-      setLookingUpInmates(false)
       return
     }
 
@@ -147,66 +122,18 @@ function App() {
     (visitor) => visitor.status === 'Pending',
   ).length
 
-  const approvedCount = visitors.filter(
-    (visitor) => visitor.status === 'Approved',
+  const gateCandidates = visitors.filter(
+    (visitor) => visitor.status === 'Approved' && !visitor.exitTimestamp,
+  )
+  const gateVisitor =
+    gateCandidates.find((visitor) => String(visitor.id) === gateVisitorId) ||
+    gateCandidates[0]
+  const activeVisitorCount = visitors.filter(
+    (visitor) => visitor.entryTimestamp && !visitor.exitTimestamp,
   ).length
-
-  const rejectedCount = visitors.filter(
-    (visitor) => visitor.status === 'Rejected',
+  const todayLogCount = visitors.filter(
+    (visitor) => visitor.date === today,
   ).length
-
-  const filteredVisitors = useMemo(() => {
-    const term = search.trim().toLowerCase()
-
-    return visitors.filter((visitor) => {
-      const matchesSearch =
-        (visitor.name || '').toLowerCase().includes(term) ||
-        (visitor.visitorId || '').toLowerCase().includes(term) ||
-        (visitor.inmate || '').toLowerCase().includes(term) ||
-        (visitor.nationalId || '').toLowerCase().includes(term)
-
-      const matchesStatus =
-        statusFilter === 'All' || visitor.status === statusFilter
-
-      const matchesDate = !dateFilter || visitor.date === dateFilter
-
-      return matchesSearch && matchesStatus && matchesDate
-    })
-  }, [visitors, search, statusFilter, dateFilter])
-
-  async function updateStatus(visitor, status) {
-    if (busyId !== null) return
-
-    setBusyId(visitor.id)
-    setNotice('')
-
-    try {
-      const response = await fetch(`${API_URL}/${visitor.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Could not update visitor status.')
-      }
-
-      setVisitors((current) =>
-        current.map((item) =>
-          item.id === visitor.id ? { ...item, ...result } : item,
-        ),
-      )
-
-      setNotice(`${visitor.name}'s request is now ${status}.`)
-    } catch (error) {
-      console.error('Updating visitor failed:', error)
-      setNotice(error.message || 'Could not update visitor status.')
-    } finally {
-      setBusyId(null)
-    }
-  }
 
   async function recordVisitTime(visitor, action) {
     if (busyId !== null) return
@@ -240,41 +167,6 @@ function App() {
     } catch (error) {
       console.error('Recording visit time failed:', error)
       setNotice(error.message || 'Could not record visit time.')
-    } finally {
-      setBusyId(null)
-    }
-  }
-
-  async function deleteVisitor(visitor) {
-    if (
-      !window.confirm(
-        `Are you sure you want to remove ${visitor.name}'s visitor record?`,
-      )
-    ) {
-      return
-    }
-
-    setBusyId(visitor.id)
-
-    try {
-      const response = await fetch(`${API_URL}/${visitor.id}`, {
-        method: 'DELETE',
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Could not delete visitor.')
-      }
-
-      setVisitors((current) =>
-        current.filter((item) => item.id !== visitor.id),
-      )
-
-      setNotice('Visitor record removed successfully.')
-    } catch (error) {
-      console.error('Deleting visitor failed:', error)
-      setNotice(error.message || 'Could not remove visitor.')
     } finally {
       setBusyId(null)
     }
@@ -337,9 +229,6 @@ function App() {
       }
 
       setVisitors((current) => [result, ...current])
-      setSearch('')
-      setStatusFilter('All')
-      setDateFilter('')
       resetRegistrationForm()
       setShowForm(false)
       setNotice('Visitor registered successfully. Request is pending.')
@@ -351,79 +240,8 @@ function App() {
     }
   }
 
-  function renderActions(visitor) {
-    const isBusy = busyId === visitor.id
-
-    return (
-      <div className="action-buttons">
-        {visitor.status === 'Pending' && (
-          <>
-            <button
-              className="action-approve"
-              type="button"
-              disabled={busyId !== null}
-              onClick={() => updateStatus(visitor, 'Approved')}
-            >
-              {isBusy ? 'Saving...' : 'Approve'}
-            </button>
-
-            <button
-              className="action-reject"
-              type="button"
-              disabled={busyId !== null}
-              onClick={() => updateStatus(visitor, 'Rejected')}
-            >
-              Reject
-            </button>
-          </>
-        )}
-
-        {visitor.status === 'Approved' && !visitor.entryTimestamp && (
-          <button
-            className="action-approve"
-            type="button"
-            disabled={busyId !== null}
-            onClick={() => recordVisitTime(visitor, 'entry')}
-          >
-            {isBusy ? 'Saving...' : 'Record Entry'}
-          </button>
-        )}
-
-        {visitor.status === 'Approved' &&
-          visitor.entryTimestamp &&
-          !visitor.exitTimestamp && (
-            <button
-              className="action-approve"
-              type="button"
-              disabled={busyId !== null}
-              onClick={() => recordVisitTime(visitor, 'exit')}
-            >
-              {isBusy ? 'Saving...' : 'Record Exit'}
-            </button>
-          )}
-
-        {visitor.status === 'Approved' && visitor.exitTimestamp && (
-          <span className="status-badge approved">Visit completed</span>
-        )}
-
-        {visitor.status === 'Rejected' && (
-          <span className="status-badge rejected">Request rejected</span>
-        )}
-
-        <button
-          className="action-delete"
-          type="button"
-          disabled={busyId !== null}
-          onClick={() => deleteVisitor(visitor)}
-        >
-          {isBusy ? 'Please wait...' : 'Remove'}
-        </button>
-      </div>
-    )
-  }
-
   return (
-    <div className="app-shell no-sidebar">
+    <div className="app-shell reference-shell">
       <main className="main-content">
         <header className="topbar">
           <div className="breadcrumbs">
@@ -431,10 +249,10 @@ function App() {
             <span className="breadcrumb-divider">/</span>
             <span>Visitor Management</span>
           </div>
-          <span className="environment-label">DEMO ENVIRONMENT</span>
+          <div className="reference-topbar-right"><span className="secure-pill">● System Secure</span><span>◉ Security Badge #SEC-992</span><span className="role-pill">Role: <strong>Officer-in-Charge</strong></span><span className="officer-avatar">♟</span></div>
         </header>
 
-        <div className="page-content">
+        <div className="page-content" id="visitor-dashboard">
           <section className="page-heading">
             <div>
               <p className="eyebrow">FACILITY OPERATIONS / RECORDS</p>
@@ -445,14 +263,7 @@ function App() {
               </p>
             </div>
 
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => {
-                setNotice('')
-                setShowForm(true)
-              }}
-            >
+            <button className="primary-button" type="button" onClick={() => document.querySelector('.reference-registration')?.scrollIntoView({ behavior: 'smooth' })}>
               <span className="plus-sign">+</span>
               Register visitor
             </button>
@@ -474,197 +285,83 @@ function App() {
           <section className="stats-grid" aria-label="Visitor statistics">
             <article className="stat-card">
               <div className="stat-top">
-                <span className="stat-label">Total visitors</span>
-                <span className="stat-icon stat-blue">VR</span>
+                <span className="stat-label">Active visitors on site</span>
+                <span className="stat-icon stat-blue">♙</span>
               </div>
-              <div className="stat-number">{visitors.length}</div>
-              <p className="stat-footnote">All recorded visitors</p>
+              <div className="stat-number">{activeVisitorCount}</div>
+              <p className="stat-footnote">Checked in and currently on site</p>
             </article>
 
             <article className="stat-card">
               <div className="stat-top">
-                <span className="stat-label">Pending requests</span>
-                <span className="stat-icon stat-amber">PR</span>
+                <span className="stat-label">Pending check-ins</span>
+                <span className="stat-icon stat-amber">◷</span>
               </div>
               <div className="stat-number">{pendingCount}</div>
-              <p className="stat-footnote">Awaiting a decision</p>
+                <p className="stat-footnote">Awaiting approval</p>
             </article>
 
             <article className="stat-card">
               <div className="stat-top">
-                <span className="stat-label">Approved requests</span>
-                <span className="stat-icon stat-green">AP</span>
+                <span className="stat-label">Gatehouse status</span>
+                <span className="stat-icon stat-green">♙</span>
               </div>
-              <div className="stat-number">{approvedCount}</div>
-              <p className="stat-footnote">Approved visits</p>
+              <div className="stat-number secure-word">SECURE</div>
+              <p className="stat-footnote">All systems operational</p>
             </article>
 
             <article className="stat-card">
               <div className="stat-top">
-                <span className="stat-label">Rejected requests</span>
-                <span className="stat-icon stat-purple">RJ</span>
+                <span className="stat-label">Today's total logs</span>
+                <span className="stat-icon stat-purple">◴</span>
               </div>
-              <div className="stat-number">{rejectedCount}</div>
-              <p className="stat-footnote">Requests not approved</p>
+              <div className="stat-number">{todayLogCount}</div>
+              <p className="stat-footnote">Visitor records scheduled today</p>
             </article>
           </section>
 
-          <section className="table-card">
-            <div className="table-heading">
-              <div>
-                <h2>Visitor records</h2>
-                <p>
-                  Review requests and record official arrival and departure
-                  times.
-                </p>
-              </div>
-              <span className="records-count">
-                {filteredVisitors.length} records
-              </span>
+          <div className="reference-dashboard-grid">
+            <div className="reference-left-stack">
+              <section className="reference-panel reference-registration">
+                <div className="reference-panel-heading"><h2><span>♧</span> Visitor Registration Form (FR-07)</h2><small>Gatehouse Entry Port A</small></div>
+                <form className="reference-inline-form" onSubmit={registerVisitor}>
+                  <div className="reference-fields-grid">
+                    <label>Full Name<input required maxLength="100" placeholder="e.g. Jonathan R. Vance" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+                    <label>National ID / Passport<input required maxLength="60" placeholder="US-99482103-X" value={form.nationalId} onChange={(event) => setForm({ ...form, nationalId: event.target.value })} /></label>
+                    <label>Contact Details<input required type="tel" maxLength="30" placeholder="+1 (555) 019-2834" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></label>
+                    <label>Relationship to Inmate<select required value={form.relationshipToInmate} onChange={(event) => setForm({ ...form, relationshipToInmate: event.target.value })}><option value="">Select relationship</option><option>Legal Counsel / Attorney</option><option>Spouse</option><option>Parent</option><option>Child</option><option>Sibling</option><option>Relative</option><option>Friend</option><option>Other</option></select></label>
+                  </div>
+                  <label className="reference-wide-field">Inmate Lookup<input required placeholder="Search inmate ID or name..." value={inmateSearch} onChange={(event) => { setInmateSearch(event.target.value); setSelectedInmate(null); setForm({ ...form, inmate: '' }) }} /></label>
+                  {lookingUpInmates && <p className="reference-help">Searching inmate records...</p>}
+                  {inmateResults.length > 0 && !selectedInmate && <div className="reference-inmate-results">{inmateResults.map((inmate) => <button type="button" key={inmate.fullName} onClick={() => { setSelectedInmate(inmate); setForm({ ...form, inmate: inmate.fullName }); setInmateSearch(inmate.fullName); setInmateResults([]) }}><strong>{inmate.fullName}</strong><span>{inmate.cellBlock} · {inmate.visitationAllowed ? 'Visitation allowed' : 'Restricted'}</span></button>)}</div>}
+                  {selectedInmate && <div className="reference-selected-inmate"><strong>{selectedInmate.fullName}</strong><span>{selectedInmate.cellBlock} · {selectedInmate.visitationAllowed ? 'Visitation allowed' : 'Restricted'}</span><button type="button" onClick={() => { setSelectedInmate(null); setInmateSearch(''); setForm({ ...form, inmate: '' }) }}>Change</button></div>}
+                  <label className="reference-wide-field">Purpose of Visit<input required maxLength="500" placeholder="Brief reason for visit" value={form.purpose} onChange={(event) => setForm({ ...form, purpose: event.target.value })} /></label>
+                  <fieldset className="reference-gate-checks"><legend>Checked Items at Gate (Security Screening)</legend>{['Valid ID', 'Metal Detector Clear', 'No Electronics', 'Bag Tagged'].map((item) => <label key={item}><input type="checkbox" checked={form.checkedItems.includes(item)} onChange={(event) => { const checkedItems = event.target.checked ? [...form.checkedItems, item] : form.checkedItems.filter((checked) => checked !== item); setForm({ ...form, checkedItems }) }} />{item}</label>)}</fieldset>
+                  <div className="reference-form-footer"><label>Visit date<input required type="date" min={today} value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} /></label><label>Visit time<input required type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} /></label><div><button className="outline-button" type="button" onClick={resetRegistrationForm}>Clear Form</button><button className="dark-button" type="submit" disabled={formBusy}>{formBusy ? 'Registering...' : 'Register & Issue Pass'}</button></div></div>
+                </form>
+              </section>
+
+              <section className="reference-panel reference-lookup">
+                <div className="reference-panel-heading"><h2><span>⌕</span> Inmate Lookup & Gatekeeper Minimum Access (FR-11)</h2><small>Confidential Files<br />Restricted</small></div>
+                <label className="reference-lookup-search"><input aria-label="Search inmate ID or name" placeholder="Search Inmate ID or Name..." value={inmateSearch} onChange={(event) => { setInmateSearch(event.target.value); setInmateResults([]); setLookingUpInmates(false); setSelectedInmate(null) }} /><span>Lookup</span></label>
+                {selectedInmate ? <div className="reference-inmate-card">{selectedInmate.photoUrl ? <img src={selectedInmate.photoUrl} alt={`${selectedInmate.fullName} profile`} /> : <div className="reference-photo-placeholder">{selectedInmate.fullName.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div>}<div><h3>{selectedInmate.fullName}</h3><p>Cell Block: <strong>{selectedInmate.cellBlock}</strong></p><p>Security, Tier 2</p><small>✓ &nbsp;Verified minimum information displayed</small></div><button type="button" onClick={() => { setForm({ ...form, inmate: selectedInmate.fullName }); document.querySelector('.reference-registration')?.scrollIntoView({ behavior: 'smooth' }) }}>Attach to Session</button></div> : <p className="reference-lookup-empty">Search for an inmate to display permitted details.</p>}
+              </section>
             </div>
-
-            <div className="toolbar">
-              <label className="search-box">
-                <span className="search-symbol">⌕</span>
-                <input
-                  type="search"
-                  placeholder="Search visitor, ID or inmate..."
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  aria-label="Search visitor records"
-                />
-              </label>
-
-              <select
-                className="filter-select"
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                aria-label="Filter by status"
-              >
-                <option value="All">All statuses</option>
-                {VISITOR_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                className="date-filter"
-                type="date"
-                value={dateFilter}
-                onChange={(event) => setDateFilter(event.target.value)}
-                aria-label="Filter by visit date"
-              />
+            <div className="reference-right-stack">
+              <section className="reference-panel reference-gatehouse">
+                <div className="reference-panel-heading"><h2><span>♧</span> Gatehouse Touch Controls</h2><span className="live-port">LIVE PORT</span></div>
+                <label className="gate-visitor-select">Approved visitor<select aria-label="Select an approved visitor" value={gateVisitor?.id || ''} onChange={(event) => setGateVisitorId(event.target.value)}><option value="">Select visitor...</option>{gateCandidates.map((visitor) => <option key={visitor.id} value={visitor.id}>{visitor.name} · {visitor.visitorId}</option>)}</select></label>
+                <div className="reference-gate-buttons"><button className="gate-check-in" type="button" disabled={!gateVisitor || Boolean(gateVisitor.entryTimestamp) || busyId !== null} onClick={() => gateVisitor && recordVisitTime(gateVisitor, 'entry')}><span>⇥</span>CHECK-IN</button><button className="gate-check-out" type="button" disabled={!gateVisitor?.entryTimestamp || Boolean(gateVisitor.exitTimestamp) || busyId !== null} onClick={() => gateVisitor && recordVisitTime(gateVisitor, 'exit')}><span>⇤</span>CHECK-OUT</button></div>
+                <div className="reference-port-details"><p><span>Active Station Terminal</span><strong>GT-PORT-04</strong></p><p><span>Gatekeeper Officer ID</span><strong>SEC-OFF-882</strong></p><p><span>System Synchronization</span><strong className="optimal-label">Optimal (0.04s)</strong></p></div>
+              </section>
+              <section className="reference-panel reference-session-logs">
+                <div className="reference-panel-heading"><h2><span>▤</span> Active Session Logs</h2><small>Auto-updating</small></div>
+                <div className="reference-log-header"><span>VISITOR / INMATE</span><span>ENTRY</span><span>STATUS</span></div>
+                {loading ? <p className="reference-log-empty">Loading sessions...</p> : visitors.slice(0, 6).map((visitor) => <div className="reference-log-row" key={visitor.id}><div><strong>{visitor.name}</strong><span>↳ {visitor.inmate}</span></div><time>{visitor.entryTimestamp ? formatTime(new Date(visitor.entryTimestamp).toTimeString().slice(0, 5)) : formatTime(visitor.time)}</time><span className={`reference-log-status ${visitor.exitTimestamp ? 'exited' : visitor.entryTimestamp ? 'onsite' : 'scheduled'}`}>{visitor.exitTimestamp ? 'Exited' : visitor.entryTimestamp ? 'On Site' : visitor.status}</span></div>)}
+                {!loading && visitors.length === 0 && <p className="reference-log-empty">No visitor sessions have been recorded.</p>}
+              </section>
             </div>
-
-            <div className="table-scroll">
-              <table className="visitor-table">
-                <thead>
-                  <tr>
-                    <th>VISITOR</th>
-                    <th>INMATE TO VISIT</th>
-                    <th>VISIT DATE</th>
-                    <th>TIME</th>
-                    <th>VISIT STATUS</th>
-                    <th>GATE ENTRY</th>
-                    <th>GATE EXIT</th>
-                    <th>ACTIONS</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan="8" className="empty-state">
-                        <strong>Loading visitors...</strong>
-                        <span>Connecting to the backend.</span>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredVisitors.map((visitor) => (
-                      <tr key={visitor.id}>
-                        <td>
-                          <div className="visitor-cell">
-                            <div className="visitor-avatar">
-                              {(visitor.name || 'V')
-                                .split(' ')
-                                .map((part) => part[0])
-                                .join('')
-                                .slice(0, 2)
-                                .toUpperCase()}
-                            </div>
-                            <div className="visitor-details">
-                              <strong>{visitor.name}</strong>
-                              <span>{visitor.visitorId}</span>
-                              {visitor.nationalId && (
-                                <span>ID: {visitor.nationalId}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>
-                          <span className="inmate-name">{visitor.inmate}</span>
-                        </td>
-                        <td>{formatDate(visitor.date)}</td>
-                        <td>{formatTime(visitor.time)}</td>
-                        <td>
-                          <span
-                            className={`status-badge ${getStatusClass(
-                              visitor.status,
-                            )}`}
-                          >
-                            <span className="status-dot" />
-                            {visitor.status || 'Pending'}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="timestamp-text">
-                            {formatTimestamp(visitor.entryTimestamp)}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="timestamp-text">
-                            {formatTimestamp(visitor.exitTimestamp)}
-                          </span>
-                        </td>
-                        <td>{renderActions(visitor)}</td>
-                      </tr>
-                    ))
-                  )}
-
-                  {!loading && filteredVisitors.length === 0 && (
-                    <tr>
-                      <td colSpan="8" className="empty-state">
-                        <strong>No visitors found</strong>
-                        <span>
-                          Try changing your search or filter settings.
-                        </span>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="table-footer">
-              <span>
-                Showing {filteredVisitors.length} of {visitors.length} records
-              </span>
-              <button
-                className="clear-filters"
-                type="button"
-                onClick={() => {
-                  setSearch('')
-                  setStatusFilter('All')
-                  setDateFilter('')
-                }}
-              >
-                Clear filters
-              </button>
-            </div>
-          </section>
+          </div>
 
           <footer className="page-footer">
             <span>Prison Management System</span>
@@ -777,6 +474,8 @@ function App() {
                   value={inmateSearch}
                   onChange={(event) => {
                     setInmateSearch(event.target.value)
+                    setInmateResults([])
+                    setLookingUpInmates(false)
                     setSelectedInmate(null)
                     setForm({ ...form, inmate: '' })
                   }}

@@ -148,20 +148,24 @@ if (visitorCount === 0) {
 
 // Convert stored JSON into an array for the frontend.
 function formatVisitor(visitor) {
-  let checkedItems = []
-
-  try {
-    checkedItems = JSON.parse(visitor.checkedItems || '[]')
-    if (!Array.isArray(checkedItems)) checkedItems = []
-  } catch {
-    checkedItems = []
-  }
+  const checkedItems = (() => {
+    try {
+      const parsed = JSON.parse(visitor.checkedItems || '[]')
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  })()
 
   return { ...visitor, checkedItems }
 }
 
 app.get('/', (req, res) => {
   res.json({ message: 'SQLite mock backend is running!' })
+})
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', service: 'mock-backend' })
 })
 
 // List visitor records.
