@@ -7,15 +7,15 @@ type Props = { canAdmit: boolean }
 type AdmissionForm = { id: string; fullName: string; offense: string; warrant: string; block: string; cell: string; status: CustodyStatus; admissionDate: string; arrestingStation: string }
 
 const inmates: Inmate[] = [
-  { id: 'INM-88392', fullName: 'Harrison, Arthur J.', offense: 'Armed Robbery', warrant: 'W-44901-X', block: 'Block A', cell: 'Cell 104-B', status: 'Max Security', admissionDate: 'Jan 12, 2021', arrestingStation: 'Central Precinct #4' },
-  { id: 'INM-91024', fullName: 'DuPont, Marie Claire', offense: 'Securities Fraud', warrant: 'W-99214-F', block: 'Block B', cell: 'Cell 210-A', status: 'Active Sentence', admissionDate: 'May 19, 2022', arrestingStation: 'Metro Transit Hub' },
-  { id: 'INM-94012', fullName: 'Sokolov, Dmitri', offense: 'Controlled Substances', warrant: 'W-11029-B', block: 'Block C', cell: 'Cell 012-C', status: 'Pre-Trial', admissionDate: 'Aug 03, 2023', arrestingStation: 'North District Precinct' },
-  { id: 'INM-95521', fullName: 'Ramirez, Carlos E.', offense: 'Grand Larceny', warrant: 'W-44012-L', block: 'Block B', cell: 'Cell 304-A', status: 'Active Sentence', admissionDate: 'Nov 14, 2021', arrestingStation: 'Central Precinct #4' },
+  { id: 'INM-88392', fullName: 'Chimwemwe, Massa J.', offense: 'Armed Robbery', warrant: 'W-44901-X', block: 'Block A', cell: 'Cell 104-B', status: 'Max Security', admissionDate: 'Jan 12, 2021', arrestingStation: 'Central Precinct #4' },
+  { id: 'INM-91024', fullName: 'KElvin, Marie Namu', offense: 'Securities Fraud', warrant: 'W-99214-F', block: 'Block B', cell: 'Cell 210-A', status: 'Active Sentence', admissionDate: 'May 19, 2022', arrestingStation: 'Metro Transit Hub' },
+  { id: 'INM-94012', fullName: 'Khomnbo, Sam', offense: 'Controlled Substances', warrant: 'W-11029-B', block: 'Block C', cell: 'Cell 012-C', status: 'Pre-Trial', admissionDate: 'Aug 03, 2023', arrestingStation: 'North District Precinct' },
+  { id: 'INM-95521', fullName: 'Alinane, Pansi E.', offense: 'Grand Larceny', warrant: 'W-44012-L', block: 'Block B', cell: 'Cell 304-A', status: 'Active Sentence', admissionDate: 'Nov 14, 2021', arrestingStation: 'Central Precinct #4' },
 ]
 const scheduledTransfers = [
-  { id: 'TRN-1048', name: 'Harrison, Arthur J.', inmateId: 'INM-88392', court: 'Central Criminal Court', time: 'Oct 25, 2023 · 08:30', escort: 'Unit Bravo' },
-  { id: 'TRN-1051', name: 'DuPont, Marie Claire', inmateId: 'INM-91024', court: 'Financial Crimes Division', time: 'Oct 25, 2023 · 10:00', escort: 'Unit Delta' },
-  { id: 'TRN-1054', name: 'Ramirez, Carlos E.', inmateId: 'INM-95521', court: 'District Court 3', time: 'Oct 26, 2023 · 09:15', escort: 'Unit Bravo' },
+  { id: 'TRN-1048', name: 'fazala, mashona J.', inmateId: 'INM-88392', court: 'Central Criminal Court', time: 'Oct 25, 2023 · 08:30', escort: 'Unit Bravo' },
+  { id: 'TRN-1051', name: 'Dunga, Marie Nkhwani', inmateId: 'INM-91024', court: 'Financial Crimes Division', time: 'Oct 25, 2023 · 10:00', escort: 'Unit Delta' },
+  { id: 'TRN-1054', name: 'kayaman, Zako E.', inmateId: 'INM-95521', court: 'District Court 3', time: 'Oct 26, 2023 · 09:15', escort: 'Unit Bravo' },
 ]
 const initials = (name: string) => name.replace(',', '').split(' ').map((word) => word[0]).slice(0, 2).join('')
 const emptyAdmission: AdmissionForm = { id: '', fullName: '', offense: '', warrant: '', block: 'Block A', cell: '', status: 'Pre-Trial', admissionDate: new Date().toISOString().slice(0, 10), arrestingStation: '' }
