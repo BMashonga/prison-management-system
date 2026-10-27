@@ -1,6 +1,10 @@
 
 import { useEffect, useState } from 'react'
 import './App.css'
+import './visitorStyles.css'
+import { InmateManagement } from './features/inmates/InmateManagement'
+import TransferManagement from './pages/TransferManagement'
+import UserAccess from './UsersAccess/UserAccess'
 
 const API_URL =
   import.meta.env.VITE_API_URL || '/api/visitors'
@@ -28,7 +32,17 @@ function formatTime(time) {
   return `${hour % 12 || 12}:${minutes} ${hour >= 12 ? 'PM' : 'AM'}`
 }
 
+const navItems = [
+  ['dashboard', 'Dashboard'], ['inmates', 'Inmate management'], ['visitors', 'Visitor management'],
+  ['transfers', 'Transfer management'], ['access', 'Users & access'],
+]
+function NavIcon({ name }) {
+  const paths = { dashboard: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z', inmates: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zM8 11c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 2 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z', visitors: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z', transfers: 'M7 7h11l-3.5-3.5L16 2l6 6-6 6-1.5-1.5L18 9H7V7zm10 10H6l3.5 3.5L8 22l-6-6 6-6 1.5 1.5L6 15h11v2z', access: 'M12 1 3 5v6c0 5.6 3.8 10.7 9 12 5.2-1.3 9-6.4 9-12V5l-9-4zm0 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm5.1 12A9.7 9.7 0 0 1 12 20.9 9.7 9.7 0 0 1 6.9 17c.1-1.7 3.4-2.6 5.1-2.6s5.1.9 5.1 2.6z' }
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name]} /></svg>
+}
+
 function App() {
+  const [activeModule, setActiveModule] = useState('visitors')
   const [visitors, setVisitors] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [notice, setNotice] = useState('')
@@ -242,17 +256,18 @@ function App() {
 
   return (
     <div className="app-shell reference-shell">
+      <aside className="reference-sidebar" aria-label="Primary navigation">
+        <div className="reference-brand"><span>⌂</span><div><strong>PRISON OPS</strong><small>Operations console</small></div></div>
+        <p className="sidebar-module-label">OPERATIONS</p>
+        <nav>{navItems.map(([id, label]) => <button key={id} className={`reference-nav-item ${activeModule === id ? 'active' : ''}`} type="button" onClick={() => setActiveModule(id)}><span><NavIcon name={id} /></span>{label}</button>)}</nav>
+        <div className="reference-version"><strong>Officer-in-Charge</strong><span>Secure session active</span></div>
+      </aside>
       <main className="main-content">
-        <header className="topbar">
-          <div className="breadcrumbs">
-            <strong>Prison Management System</strong>
-            <span className="breadcrumb-divider">/</span>
-            <span>Visitor Management</span>
-          </div>
-          <div className="reference-topbar-right"><span className="secure-pill">● System Secure</span><span>◉ Security Badge #SEC-992</span><span className="role-pill">Role: <strong>Officer-in-Charge</strong></span><span className="officer-avatar">♟</span></div>
+        <header className="topbar inmate-host-topbar">
+          <div className="inmate-host-account"><span>Officer-in-Charge</span><b aria-label="Account">●</b></div>
         </header>
 
-        <div className="page-content" id="visitor-dashboard">
+        {activeModule === 'visitors' ? <div className="page-content" id="visitor-dashboard">
           <section className="page-heading">
             <div>
               <p className="eyebrow">FACILITY OPERATIONS / RECORDS</p>
@@ -367,7 +382,7 @@ function App() {
             <span>Prison Management System</span>
             <span>Visitor Management · Frontend demonstration</span>
           </footer>
-        </div>
+        </div> : <div className="module-host">{activeModule === 'inmates' && <InmateManagement canAdmit />}{activeModule === 'transfers' && <TransferManagement />}{activeModule === 'access' && <UserAccess />}{activeModule === 'dashboard' && <section className="dashboard-placeholder"><p>OPERATIONS / OVERVIEW</p><h1>Operations dashboard</h1><span>Select a module from the navigation to manage institutional records and workflows.</span></section>}</div>}
       </main>
 
       {showForm && (

@@ -19,6 +19,7 @@ import {
   type TransferAuditEntry,
   type TransferStatus,
 } from '../data/transferMockData'
+import '../moduleStyles.css'
 
 function getLocalDate(): string {
   const now = new Date()
@@ -160,16 +161,11 @@ function TransferManagement() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1600, mx: 'auto' }}>
+    <Box className="module-workspace transfer-workspace">
       <Stack spacing={3}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Transfer Management
-          </Typography>
-          <Typography color="text.secondary" sx={{ mt: 1 }}>
-            Create transfer requests, review approvals, track movement, and
-            inspect transfer history.
-          </Typography>
+        <Box className="module-heading">
+          <Typography className="module-crumb">Operations / Movement control</Typography>
+          <Box className="module-heading-row"><Box><Typography component="h1">Transfer management</Typography><Typography>Create transfer requests, review approvals, track movement, and inspect transfer history.</Typography></Box></Box>
         </Box>
 
         {successMessage && (
